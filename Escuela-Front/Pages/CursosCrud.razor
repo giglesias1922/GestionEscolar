@@ -1,0 +1,153 @@
+﻿@inherits DialogBase
+@using Escuela_Front.Base
+@using Escuela_Front.Models
+@using Escuela_Front.Services
+@using MudBlazor.Utilities
+@inject CursosService Service
+
+
+<MudDialog>
+
+    <DialogContent>
+
+        <MudForm @ref="form">
+
+            <MudTextField Label="Nombre"
+                          @bind-Value="model.Nombre"
+                          Required="true" />
+
+            <MudColorPicker Value="@pickerColor" ValueChanged="OnColorChanged" Label="Color" />
+
+            <MudSelect T="string" Label="Ícono" @bind-Value="model.Icono" Required="true" Variant="Variant.Outlined">
+                @foreach (var icon in availableIcons)
+                {
+                    <MudSelectItem Value="@icon.Value">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <MudIcon Icon="@icon.Icon" />
+                            <span>@icon.Name</span>
+                        </div>
+                    </MudSelectItem>
+                }
+            </MudSelect>
+
+            @if (!string.IsNullOrEmpty(model.Icono))
+            {
+                <div style="margin-top: 8px; padding: 12px; background-color: var(--mud-palette-background-grey); border-radius: 4px;">
+                    <MudText Typo="Typo.body2" GutterBottom="true">Vista previa:</MudText>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        @if (model.Icono.StartsWith("Icons.Material"))
+                        {
+                            <MudIcon Icon="@GetIconFromString(model.Icono)" Size="Size.Large" />
+                        }
+                        else
+                        {
+                            <span style="font-size: 32px;">@model.Icono</span>
+                        }
+                        <MudChip T="string" Style="@($"background-color:{model.Color}; color:white;")">
+                            @model.Nombre
+                        </MudChip>
+                    </div>
+                </div>
+            }
+
+        </MudForm>
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton OnClick="Save" Color="Color.Primary">Guardar</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="@(() => CloseDialog(false))">Cancelar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Curso? Model { get; set; }
+    private Curso model = new();
+    private MudForm? form;
+
+    private List<IconOption> availableIcons = new();
+
+    private MudColor pickerColor
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(model.Color))
+                return new MudColor("#FF0000");
+            try
+            {
+                return new MudColor(model.Color);
+            }
+            catch
+            {
+                return new MudColor("#FF0000");
+            }
+        }
+        set => model.Color = value.ToString(MudColorOutputFormats.Hex);
+    }
+
+    private void OnColorChanged(MudColor color)
+    {
+        model.Color = color.ToString(MudColorOutputFormats.Hex);
+    }
+
+    private string GetIconFromString(string iconString)
+    {
+        var iconOption = availableIcons.FirstOrDefault(i => i.Value == iconString);
+        return iconOption?.Icon ?? Icons.Material.Filled.School;
+    }
+
+    protected override void OnInitialized()
+    {
+        availableIcons = new List<IconOption>
+        {
+            new IconOption { Value = "Icons.Material.Filled.School", Name = "School", Icon = Icons.Material.Filled.School },
+            new IconOption { Value = "Icons.Material.Filled.Book", Name = "Book", Icon = Icons.Material.Filled.Book },
+            new IconOption { Value = "Icons.Material.Filled.MenuBook", Name = "Menu Book", Icon = Icons.Material.Filled.MenuBook },
+            new IconOption { Value = "Icons.Material.Filled.LibraryBooks", Name = "Library Books", Icon = Icons.Material.Filled.LibraryBooks },
+            new IconOption { Value = "Icons.Material.Filled.Class", Name = "Class", Icon = Icons.Material.Filled.Class },
+            new IconOption { Value = "Icons.Material.Filled.People", Name = "People", Icon = Icons.Material.Filled.People },
+            new IconOption { Value = "Icons.Material.Filled.Groups", Name = "Groups", Icon = Icons.Material.Filled.Groups },
+            new IconOption { Value = "Icons.Material.Filled.Person", Name = "Person", Icon = Icons.Material.Filled.Person },
+            new IconOption { Value = "Icons.Material.Filled.EmojiEvents", Name = "Emoji Events", Icon = Icons.Material.Filled.EmojiEvents },
+            new IconOption { Value = "Icons.Material.Filled.Star", Name = "Star", Icon = Icons.Material.Filled.Star },
+        };
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (Model != null)
+        {
+            model = new Curso
+            {
+                Id = Model.Id,
+                Nombre = Model.Nombre ?? string.Empty,
+                Color = Model.Color ?? "#FF0000",
+                Icono = Model.Icono ?? "Icons.Material.Filled.School",
+            };
+        }
+        else
+        {
+            model = new Curso();
+        }
+    }
+
+    private async Task Save()
+    {
+        await form.Validate();
+        if (!form.IsValid) return;
+
+        if (model.Id == Guid.Empty)
+            await Service.CreateAsync(model);
+        else
+            await Service.UpdateAsync(model.Id, model);
+
+        CloseDialog(true);
+    }
+
+    private class IconOption
+    {
+        public string Value { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Icon { get; set; } = string.Empty;
+    }
+}

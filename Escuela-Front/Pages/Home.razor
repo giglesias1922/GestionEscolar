@@ -1,0 +1,132 @@
+﻿@page "/"
+@using Escuela_Front.Services
+@inject AsignaturasService AsigSvc
+@inject EstudiantesService EstSvc
+@inject CursosService CurSvc
+@inject IConfiguration Config
+
+<PageTitle>Home</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true" Class="mb-4">Resumen General</MudText>
+
+<MudGrid>
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="3" Class="stat-card">
+            <MudCardContent>
+                <div class="stat-content">
+                    <div class="stat-icon estudiantes">
+                        <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" />
+                    </div>
+                    <div class="stat-info">
+                        <MudText Typo="Typo.h6" Class="stat-label">Estudiantes</MudText>
+                        <MudText Typo="Typo.h3" Class="stat-value">@estCount</MudText>
+                    </div>
+                </div>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="3" Class="stat-card">
+            <MudCardContent>
+                <div class="stat-content">
+                    <div class="stat-icon asignaturas">
+                        <MudIcon Icon="@Icons.Material.Filled.Book" Size="Size.Large" />
+                    </div>
+                    <div class="stat-info">
+                        <MudText Typo="Typo.h6" Class="stat-label">Asignaturas</MudText>
+                        <MudText Typo="Typo.h3" Class="stat-value">@asigCount</MudText>
+                    </div>
+                </div>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    
+    
+    
+    <MudItem xs="12" sm="6" md="4">
+        <MudCard Elevation="3" Class="stat-card">
+            <MudCardContent>
+                <div class="stat-content">
+                    <div class="stat-icon cursos">
+                        <MudIcon Icon="@Icons.Material.Filled.School" Size="Size.Large" />
+                    </div>
+                    <div class="stat-info">
+                        <MudText Typo="Typo.h6" Class="stat-label">Cursos</MudText>
+                        <MudText Typo="Typo.h3" Class="stat-value">@cursoCount</MudText>
+                    </div>
+                </div>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+
+<style>
+.stat-card {
+    height: 100%;
+    transition: transform 0.2s ease-in-out;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+}
+
+.stat-content {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 10px;
+}
+
+.stat-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-icon.asignaturas {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.stat-icon.estudiantes {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+}
+
+.stat-icon.cursos {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-label {
+    color: var(--mud-palette-text-secondary);
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-weight: bold;
+    color: var(--mud-palette-text-primary);
+}
+</style>
+
+@code{
+    int asigCount, estCount, cursoCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        asigCount = (await AsigSvc.GetAllAsync())?.Count ?? 0;
+        estCount = (await EstSvc.GetAllAsync())?.Count ?? 0;
+        cursoCount = (await CurSvc.GetAllAsync())?.Count ?? 0;
+    }
+}
+

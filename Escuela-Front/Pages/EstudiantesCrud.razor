@@ -1,0 +1,67 @@
+﻿@inherits DialogBase
+@using Escuela_Front.Base
+@using Escuela_Front.Models
+@using Escuela_Front.Services
+@inject EstudiantesService Service
+
+
+<MudDialog>
+
+    <DialogContent>
+
+        <MudForm @ref="form">
+
+            <MudTextField Label="Nombre"
+                            @bind-Value="model.NombreCompleto"
+                            Required="true"
+                            Validation="@((string v) => v.Length >= 3 ? null : "Mínimo 3 caracteres")" />
+
+            <MudNumericField @bind-Value="model.Edad"
+                                Label="Edad"
+                                Required="true"
+                                Validation="@((int v) => v >= 5 && v <= 18 ? null : "Debe ser entre 5 y 18")" />
+
+        </MudForm>
+    
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Save">Guardar</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="Cancel">Cancelar</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Estudiante? Model { get; set; }
+
+    private Estudiante model = new();
+    private MudForm? form;
+
+    protected override void OnInitialized()
+    {
+        model = Model != null
+            ? new Estudiante { Id = Model.Id, NombreCompleto = Model.NombreCompleto, Edad = Model.Edad }
+            : new Estudiante();
+    }
+
+    private void Cancel()
+    {
+        CloseDialog(false);
+    }
+
+    private async Task Save()
+    {
+        if (form is null)
+            return;
+
+        await form.Validate();
+        if (!form.IsValid) return;
+
+        if (model.Id == Guid.Empty)
+            await Service.CreateAsync(model);
+        else
+            await Service.UpdateAsync(model.Id,model);
+
+        CloseDialog(true);
+    }
+}

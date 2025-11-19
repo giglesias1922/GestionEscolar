@@ -1,0 +1,158 @@
+﻿@page "/cursos"
+@inject IDialogService Dialogs
+@inject NavigationManager NavigationManager
+@inject CursosService Service
+@using Escuela_Front.Models
+@using Escuela_Front.Services
+@using Microsoft.AspNetCore.Components.Web
+
+
+<PageTitle>Cursos</PageTitle>
+
+<MudPaper Class="p-4">
+
+    <MudText Typo="Typo.h5">Gestión de Cursos</MudText>
+
+    <MudTextField @bind-Value="search" Placeholder="Buscar..."
+                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                  Class="my-3" />
+
+    <MudButton Color="Color.Primary" OnClick="Add">
+        Nuevo Curso
+    </MudButton>
+
+    <MudTable Items="filtered" RowsPerPage="5" Hover="true">
+
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Nombre</MudTh>
+            <MudTh>Color</MudTh>
+            <MudTh>Ícono</MudTh>
+            <MudTh># Asignaturas</MudTh>
+            <MudTh># Estudiantes</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>@context.Id</MudTd>
+            <MudTd>@context.Nombre</MudTd>
+            <MudTd>
+                @if (!string.IsNullOrEmpty(context.Color))
+                {
+                    <MudChip T="string" Style="@($"background-color:{context.Color}; color:white; padding: 4px 12px;")">
+                        @context.Color
+                    </MudChip>
+                }
+            </MudTd>
+            <MudTd>
+                @if (!string.IsNullOrEmpty(context.Icono))
+                {
+                    @if (context.Icono.StartsWith("Icons.Material"))
+                    {
+                        <MudIcon Icon="@GetIconFromString(context.Icono)" Size="Size.Medium" />
+                    }
+                    else
+                    {
+                        <span style="font-size: 24px;">@context.Icono</span>
+                    }
+                }
+            </MudTd>
+            <MudTd>
+                @{
+                    var asignaturasCount = context.Asignaturas?.Count ?? 0;
+                }
+                @asignaturasCount
+            </MudTd>
+            <MudTd>
+                @{
+                    var estudiantesCount = context.Estudiantes?.Count ?? 0;
+                }
+                @estudiantesCount
+            </MudTd>
+
+            <MudTd>
+                <MudButton Variant="Variant.Text" OnClick="() => Edit(context)">Editar</MudButton>
+                <MudButton Variant="Variant.Text" OnClick="() => GoDetail(context.Id)">Detalle</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Error"
+                           OnClick="() => Delete(context.Id)">Eliminar</MudButton>
+            </MudTd>
+        </RowTemplate>
+
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+
+    </MudTable>
+
+</MudPaper>
+
+@code {
+    private List<Curso> cursos = new();
+    private string search = "";
+
+    private IEnumerable<Curso> filtered =>
+        cursos.Where(x => string.IsNullOrWhiteSpace(search) ||
+                          x.Nombre.Contains(search, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        cursos = await Service.GetAllAsync()??new List<Curso>();
+    }
+
+    private async Task Add()
+    {
+        var dialog = await Dialogs.ShowAsync<CursosCrud>("Nuevo Curso");
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+            await Load();
+    }
+
+    private async Task Edit(Curso c)
+    {
+        var p = new DialogParameters { ["Model"] = c };
+        var dialog = await Dialogs.ShowAsync<CursosCrud>("Editar Curso", p);
+        var result = await dialog.Result;
+        
+        if (result != null && !result.Canceled) 
+            await Load();
+    }
+
+    private void GoDetail(Guid id)
+    {
+        NavigationManager.NavigateTo($"/curso/{id}");
+    }
+
+    private async Task Delete(Guid id)
+    {
+        bool ok = await Dialogs.ShowMessageBox("Confirmación", "¿Eliminar curso?",
+            yesText: "Sí", cancelText: "Cancelar")??false;
+
+        if (ok)
+        {
+            await Service.DeleteAsync(id);
+            await Load();
+        }
+    }
+
+    private string GetIconFromString(string iconString)
+    {
+        // Mapeo de strings a iconos de Material
+        return iconString switch
+        {
+            "Icons.Material.Filled.School" => Icons.Material.Filled.School,
+            "Icons.Material.Filled.Book" => Icons.Material.Filled.Book,
+            "Icons.Material.Filled.MenuBook" => Icons.Material.Filled.MenuBook,
+            "Icons.Material.Filled.LibraryBooks" => Icons.Material.Filled.LibraryBooks,
+            "Icons.Material.Filled.Class" => Icons.Material.Filled.Class,
+            "Icons.Material.Filled.People" => Icons.Material.Filled.People,
+            "Icons.Material.Filled.Groups" => Icons.Material.Filled.Groups,
+            "Icons.Material.Filled.Person" => Icons.Material.Filled.Person,
+            "Icons.Material.Filled.EmojiEvents" => Icons.Material.Filled.EmojiEvents,
+            "Icons.Material.Filled.Star" => Icons.Material.Filled.Star,
+            _ => Icons.Material.Filled.School
+        };
+    }
+}

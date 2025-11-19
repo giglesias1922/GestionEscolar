@@ -1,0 +1,105 @@
+﻿@page "/estudiantes"
+@inject IDialogService DialogService
+@inject EstudiantesService Service
+@using Escuela_Front.Models
+@using Escuela_Front.Services 
+@using Microsoft.AspNetCore.Components.Web
+
+<PageTitle>Estudiantes</PageTitle>
+
+
+<MudPaper Class="p-4">
+
+    <MudText Typo="Typo.h5">Gestión de Estudiantes</MudText>
+
+    <MudTextField @bind-Value="search" Placeholder="Buscar..."
+                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                  Class="my-3" />
+
+    <MudButton Color="Color.Primary" OnClick="Add">
+        Agregar Estudiante
+    </MudButton>
+
+    <MudTable T="Estudiante" Items="filtered()" RowsPerPage="5" Hover="true">
+
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Nombre Completo</MudTh>
+            <MudTh>Edad</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>@context.Id</MudTd>
+            <MudTd>@context.NombreCompleto</MudTd>
+            <MudTd>@context.Edad años</MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Text" OnClick="() => Edit(context)">Editar</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Error"
+                           OnClick="() => Delete(context.Id)">Eliminar</MudButton>
+            </MudTd>
+        </RowTemplate>
+
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+
+    </MudTable>
+
+</MudPaper>
+
+@code {
+    private List<Estudiante> estudiantes = new();
+    private string search = "";
+
+    private List<Estudiante> filtered()
+    {
+        return estudiantes.Where(x =>
+            string.IsNullOrWhiteSpace(search)
+            || x.NombreCompleto.Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        estudiantes = await Service.GetAllAsync()??new List<Estudiante>();
+    }
+
+    private async Task Add()
+    {
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
+        var dialog = await DialogService.ShowAsync<EstudiantesCrud>("Nuevo Estudiante", options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+            await Load();
+    }
+
+    private async Task Edit(Estudiante e)
+    {
+        var parameters = new DialogParameters { ["Model"] = e };
+        var options = new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small };
+
+        var dialog = await DialogService.ShowAsync<EstudiantesCrud>("Editar Estudiante", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+            await Load();
+    }
+
+    private async Task Delete(Guid id)
+    {
+        bool ok = await DialogService.ShowMessageBox(
+            "Confirmar",
+            "¿Eliminar estudiante?",
+            yesText: "Sí",
+            cancelText: "Cancelar")??false;
+
+        if (ok)
+        {
+            await Service.DeleteAsync(id);
+            await Load();
+        }
+    }
+}

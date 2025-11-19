@@ -1,0 +1,27 @@
+# Visual Studio
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.log
+TestResults/
+
+# Rider / JetBrains
+.idea/
+
+# Blazor / front-end
+wwwroot/lib/
+node_modules/
+
+# Configuraciones de JetBrains / Rider
+*.iml
+
+# Configuración de cobertura y pruebas
+.coverage
+*.coveragexml
+
+# Archivos de paquete NuGet
+*.nupkg
+*.snupkg

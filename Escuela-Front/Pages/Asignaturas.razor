@@ -1,0 +1,108 @@
+﻿@page "/asignaturas"
+@inject AsignaturasService Service
+@inject IDialogService DialogService
+@using Escuela_Front.Pages
+@using Escuela_Front.Models
+@using Escuela_Front.Services
+@using Microsoft.AspNetCore.Components.Web
+
+<PageTitle>Asignaturas</PageTitle>
+
+<MudPaper Class="p-4">
+
+    <MudText Typo="Typo.h5" GutterBottom>Gestión de Asignaturas</MudText>
+
+    <MudTextField @bind-Value="search" Placeholder="Buscar..." Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search" Class="mb-3" />
+
+    <MudButton Color="Color.Primary" OnClick="AddAsignatura">        
+        Agregar Asignatura
+    </MudButton>
+
+    <MudTable Items="filteredAsignaturas" Dense="true" Hover="true" Class="mt-3" RowsPerPage="5">
+        <HeaderContent>
+            <MudTh>ID</MudTh>
+            <MudTh>Nombre</MudTh>
+            <MudTh>Descripción</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd>@context.Id</MudTd>
+            <MudTd>@context.Nombre</MudTd>
+            <MudTd>@context.Descripcion</MudTd>
+            <MudTd>
+                <MudButton Variant="Variant.Text"
+           Color="Color.Info"
+            OnClick="@(_ => EditAsignatura(context))">
+                    Editar
+                </MudButton>
+
+                <MudButton Variant="Variant.Text"
+                           Color="Color.Error"
+                           OnClick="@(_ => DeleteAsignatura(context.Id))">
+                    Eliminar
+                </MudButton>
+            </MudTd>
+        </RowTemplate>
+
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+
+</MudPaper>
+
+@code {
+    private List<Asignatura> asignaturas = new();
+    private string search = "";
+
+    private IEnumerable<Asignatura> filteredAsignaturas =>
+        asignaturas.Where(a => string.IsNullOrWhiteSpace(search) ||
+                               a.Nombre.Contains(search, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        asignaturas = await Service.GetAllAsync()??new List<Asignatura>();
+    }
+
+    private async Task AddAsignatura()
+    {
+        var dialog = await DialogService.ShowAsync<AsignaturasCrud>("Agregar Asignatura");
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+            await LoadData();
+    }
+
+    private async Task EditAsignatura(Asignatura a)
+    {
+        var parameters = new DialogParameters { ["Model"] = a };
+        var dialog = await DialogService.ShowAsync<AsignaturasCrud>("Editar Asignatura", parameters);
+
+        var result = await dialog.Result;
+        
+        if (result != null && !result.Canceled)
+            await LoadData();
+    }
+
+    private async Task DeleteAsignatura(Guid id)
+    {
+        bool confirmed = await DialogService.ShowMessageBox(
+            "Confirmar",
+            "¿Desea eliminar esta asignatura?",
+            yesText: "Sí",
+            cancelText: "Cancelar")??false;
+
+        if (confirmed)
+        {
+            await Service.DeleteAsync(id);
+            await LoadData();
+        }
+    }
+}

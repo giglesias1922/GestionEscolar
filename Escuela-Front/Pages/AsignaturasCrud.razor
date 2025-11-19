@@ -1,0 +1,89 @@
+﻿@inherits DialogBase
+@using Escuela_Front.Base
+@using Escuela_Front.Models
+@using Escuela_Front.Services
+@inject IDialogService DialogService
+@inject AsignaturasService Service
+
+@code {
+    [Parameter] public Asignatura? Model { get; set; }
+
+    private Asignatura asignatura = new();
+    private MudForm? form;
+    private string error = "";
+}
+
+<MudDialog>
+    <DialogContent>
+
+        <MudForm @ref="form">
+
+            <MudTextField T="string" Label="Nombre"
+                          @bind-Value="asignatura.Nombre"
+                          Required="true"
+                          RequiredError="El nombre es obligatorio"
+                          HelperText="Min 3 caracteres"
+                          Immediate="true"
+                          Validation="@( (string v) => v != null && v.Length >= 3 ? null : "Debe tener al menos 3 caracteres")"
+            />
+
+
+            <MudTextField T="string" Label="Descripción"
+                          @bind-Value="asignatura.Descripcion"
+                          Lines="3"
+                          Validation="@( (string v) => v == null || v.Length <= 200 ? null : "Máximo 200 caracteres" )" />
+
+            @if (!string.IsNullOrEmpty(error))
+            {
+                <MudAlert Severity="Severity.Error">@error</MudAlert>
+            }
+
+        </MudForm>
+
+    </DialogContent>
+
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Save">Guardar</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="@(() => CloseDialog(false))">Cancelar</MudButton>
+
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    protected override void OnInitialized()
+    {
+        asignatura = Model != null
+            ? new Asignatura
+            {
+                Id = Model.Id,
+                Nombre = Model.Nombre,
+                Descripcion = Model.Descripcion
+            }
+            : new Asignatura();
+    }
+
+
+    private async Task Save()
+    {
+        await form.Validate();
+
+        if (!form.IsValid)
+            return;
+
+        bool ok;
+
+        if (asignatura.Id == Guid.Empty)
+            ok = await Service.CreateAsync(asignatura);
+        else
+            ok = await Service.UpdateAsync(asignatura.Id, asignatura);  // ← corregido
+
+        if (!ok)
+        {
+            error = "Error guardando en la API";
+            return;
+        }
+
+        CloseDialog(true);
+    }
+}
