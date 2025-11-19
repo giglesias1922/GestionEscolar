@@ -1,6 +1,7 @@
 ﻿@page "/asignaturas"
 @inject AsignaturasService Service
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 @using Escuela_Front.Pages
 @using Escuela_Front.Models
 @using Escuela_Front.Services
@@ -32,11 +33,7 @@
             <MudTd>@context.Nombre</MudTd>
             <MudTd>@context.Descripcion</MudTd>
             <MudTd>
-                <MudButton Variant="Variant.Text"
-           Color="Color.Info"
-            OnClick="@(_ => EditAsignatura(context))">
-                    Editar
-                </MudButton>
+                <MudButton Variant="Variant.Text" OnClick="() => EditAsignatura(context)">Editar</MudButton>
 
                 <MudButton Variant="Variant.Text"
                            Color="Color.Error"
@@ -91,18 +88,27 @@
             await LoadData();
     }
 
+
     private async Task DeleteAsignatura(Guid id)
     {
-        bool confirmed = await DialogService.ShowMessageBox(
+        bool ok = await DialogService.ShowMessageBox(
             "Confirmar",
             "¿Desea eliminar esta asignatura?",
             yesText: "Sí",
-            cancelText: "Cancelar")??false;
+            cancelText: "Cancelar") ?? false;
 
-        if (confirmed)
+        if (ok)
         {
-            await Service.DeleteAsync(id);
-            await LoadData();
+            try
+            {
+                await Service.DeleteAsync(id);
+                await LoadData();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
         }
     }
+
 }

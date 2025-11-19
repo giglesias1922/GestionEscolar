@@ -1,5 +1,6 @@
 ﻿@page "/"
 @using Escuela_Front.Services
+@using Escuela_Front.Models
 @inject AsignaturasService AsigSvc
 @inject EstudiantesService EstSvc
 @inject CursosService CurSvc
@@ -40,8 +41,7 @@
                 </div>
             </MudCardContent>
         </MudCard>
-    </MudItem>
-    
+    </MudItem>    
     
     
     <MudItem xs="12" sm="6" md="4">
@@ -59,74 +59,90 @@
             </MudCardContent>
         </MudCard>
     </MudItem>
+
+    <MudItem xs="12" Class="mt-6">
+        <MudText Typo="Typo.h6"  GutterBottom="true" Class="mb-4">Estudiantes y asignaturas por curso</MudText>
+    </MudItem>
+    
+    <MudItem xs="12" Class="d-flex justify-center">
+        <MudPaper Class="pa-4" Style="width: 100%; max-width: 1200px;">
+            <MudChart ChartType="ChartType.StackedBar" ChartSeries="@chartSeries" XAxisLabels="@xAxisLabels" Width="100%" Height="350px">
+                <CustomGraphics>
+                    <style>
+                        .heavy {
+                            font: bold 30px Helvetica;
+                        }
+
+                        .Rrrrr {
+                            font: italic 40px Helvetica;
+                            fill: rgb(62,44,221);
+                        }
+                    </style>
+                </CustomGraphics>
+            </MudChart>
+        </MudPaper>
+    </MudItem>
 </MudGrid>
-
-
-<style>
-.stat-card {
-    height: 100%;
-    transition: transform 0.2s ease-in-out;
-}
-
-.stat-card:hover {
-    transform: translateY(-4px);
-}
-
-.stat-content {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    padding: 10px;
-}
-
-.stat-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-}
-
-.stat-icon.asignaturas {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.stat-icon.estudiantes {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    color: white;
-}
-
-.stat-icon.cursos {
-    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    color: white;
-}
-
-.stat-info {
-    flex: 1;
-}
-
-.stat-label {
-    color: var(--mud-palette-text-secondary);
-    margin-bottom: 8px;
-}
-
-.stat-value {
-    font-weight: bold;
-    color: var(--mud-palette-text-primary);
-}
-</style>
 
 @code{
     int asigCount, estCount, cursoCount;
+    List<Curso>? cursos;
+
+    List<ChartSeries> chartSeries = new();
+    string[] xAxisLabels = Array.Empty<string>();
 
     protected override async Task OnInitializedAsync()
     {
-        asigCount = (await AsigSvc.GetAllAsync())?.Count ?? 0;
-        estCount = (await EstSvc.GetAllAsync())?.Count ?? 0;
-        cursoCount = (await CurSvc.GetAllAsync())?.Count ?? 0;
+        try
+        {
+            var asignaturas = await AsigSvc.GetAllAsync();
+            var estudiantes = await EstSvc.GetAllAsync();
+            cursos = await CurSvc.GetAllAsync();
+
+            asigCount = asignaturas?.Count ?? 0;
+            estCount = estudiantes?.Count ?? 0;
+            cursoCount = cursos?.Count ?? 0;
+
+            if (cursos != null && cursos.Count > 0)
+            {
+                var validCursos = cursos
+                    .Where(c => !string.IsNullOrWhiteSpace(c.Nombre))
+                    .ToList();
+
+                if (validCursos.Any())
+                {
+                    xAxisLabels = validCursos
+                        .Select(c => c.Nombre)
+                        .ToArray();
+
+                    var asignaturasPorCurso = validCursos
+                        .Select(c => (double)(c.Asignaturas?.Count ?? 0))
+                        .ToArray();
+
+                    var estudiantesPorCurso = validCursos
+                        .Select(c => (double)(c.Estudiantes?.Count ?? 0))
+                        .ToArray();
+
+                    chartSeries = new List<ChartSeries>()
+                    {
+                        new ChartSeries
+                        {
+                            Name = "Asignaturas",
+                            Data = asignaturasPorCurso
+                        },
+                        new ChartSeries
+                        {
+                            Name = "Estudiantes",
+                            Data = estudiantesPorCurso
+                        }
+                    };
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading data: {ex.Message}");
+        }
     }
 }
 

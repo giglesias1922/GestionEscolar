@@ -32,21 +32,28 @@ namespace Escuela_Front.Services
             return r.IsSuccessStatusCode;
         }
 
+        public async Task<bool> AddAsignatura(Guid cursoId, Guid asignaturaId)
+        {
+            var response = await _http.PostAsync($"api/cursos/{cursoId}/asignaturas/{asignaturaId}", null);
+            return response.IsSuccessStatusCode;
+        }
 
-        // Vinculaciones
-        public Task<HttpResponseMessage> AddAsignatura(int cursoId, int asignaturaId)
-        => _http.PostAsync($"api/cursos/{cursoId}/asignaturas/{asignaturaId}", null);
+        public async Task<bool> RemoveAsignatura(Guid cursoId, Guid asignaturaId)
+        {
+            var response = await _http.DeleteAsync($"api/cursos/{cursoId}/asignaturas/{asignaturaId}");
+            return response.IsSuccessStatusCode;
+        }
 
+        public async Task<bool> AddEstudiante(Guid cursoId, Guid estudianteId)
+        {
+            var response = await _http.PostAsync($"api/cursos/{cursoId}/estudiantes/{estudianteId}", null);
+            return response.IsSuccessStatusCode;
+        }
 
-        public Task<HttpResponseMessage> RemoveAsignatura(int cursoId, int asignaturaId)
-        => _http.DeleteAsync($"api/cursos/{cursoId}/asignaturas/{asignaturaId}");
-
-
-        public Task<HttpResponseMessage> AddEstudiante(int cursoId, int estudianteId)
-        => _http.PostAsync($"api/cursos/{cursoId}/estudiantes/{estudianteId}", null);
-
-
-        public Task<HttpResponseMessage> RemoveEstudiante(int cursoId, int estudianteId)
-        => _http.DeleteAsync($"api/cursos/{cursoId}/estudiantes/{estudianteId}");
+        public async Task<bool> RemoveEstudiante(Guid cursoId, Guid estudianteId)
+        {
+            var response = await _http.DeleteAsync($"api/cursos/{cursoId}/estudiantes/{estudianteId}");
+            return response.IsSuccessStatusCode;
+        }
     }
 }

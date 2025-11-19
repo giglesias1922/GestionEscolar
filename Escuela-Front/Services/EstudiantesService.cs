@@ -29,8 +29,17 @@ namespace Escuela_Front.Services
         }
         public async Task<bool> DeleteAsync(Guid id)
         {
-            var r = await _http.DeleteAsync($"api/estudiantes/{id}");
-            return r.IsSuccessStatusCode;
+            var response = await _http.DeleteAsync($"api/estudiantes/{id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var message = await response.Content.ReadAsStringAsync();
+                throw new Exception(message);
+            }
+            else
+            {
+                return true;
+            }
         }
     }
 }

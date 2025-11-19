@@ -66,6 +66,8 @@
 
     private async Task Save()
     {
+        if (form==null)return;
+
         await form.Validate();
 
         if (!form.IsValid)
@@ -76,7 +78,7 @@
         if (asignatura.Id == Guid.Empty)
             ok = await Service.CreateAsync(asignatura);
         else
-            ok = await Service.UpdateAsync(asignatura.Id, asignatura);  // ← corregido
+            ok = await Service.UpdateAsync(asignatura.Id, asignatura);  
 
         if (!ok)
         {

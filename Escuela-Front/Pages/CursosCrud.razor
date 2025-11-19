@@ -44,7 +44,6 @@
                             <span style="font-size: 32px;">@model.Icono</span>
                         }
                         <MudChip T="string" Style="@($"background-color:{model.Color}; color:white;")">
-                            @model.Nombre
                         </MudChip>
                     </div>
                 </div>
@@ -133,6 +132,7 @@
 
     private async Task Save()
     {
+        if (form == null) return;
         await form.Validate();
         if (!form.IsValid) return;
 

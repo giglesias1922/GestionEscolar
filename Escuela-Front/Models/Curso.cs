@@ -20,7 +20,6 @@ namespace Escuela_Front.Models
         public string Icono { get; set; } = "📘";
 
 
-        // Relación por IDs simples para no complicar el ejemplo
         public List<Guid> Asignaturas { get; set; } = new();
         public List<Guid> Estudiantes { get; set; } = new();
     }

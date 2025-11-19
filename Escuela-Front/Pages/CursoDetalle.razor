@@ -1,0 +1,415 @@
+@page "/curso/{CursoId:guid}"
+@inject NavigationManager Nav
+@inject IDialogService Dialogs
+@inject CursosService CursosService
+@inject AsignaturasService AsignaturasService
+@inject EstudiantesService EstudiantesService
+@using Escuela_Front.Models
+@using Escuela_Front.Pages
+@using Escuela_Front.Services
+
+<PageTitle>Detalle del Curso</PageTitle>
+
+@if (cargando)
+{
+    <div class="d-flex justify-center mt-6">
+        <MudProgressCircular Indeterminate="true" />
+    </div>
+}
+else if (!string.IsNullOrWhiteSpace(error))
+{
+    <MudAlert Severity="Severity.Error" Class="mb-2">@error</MudAlert>
+    <MudButton OnClick="Volver">Volver</MudButton>
+}
+else if (curso == null)
+{
+    <MudAlert Severity="Severity.Warning" Class="mb-2">
+        No encontré la info del curso.
+    </MudAlert>
+    <MudButton OnClick="Volver">Volver</MudButton>
+}
+else
+{
+    <MudPaper Class="p-4">
+        <MudButton Variant="Variant.Text"
+                   StartIcon="@Icons.Material.Filled.ArrowBack"
+                   OnClick="Volver">
+            Volver
+        </MudButton>
+
+        <MudText Typo="Typo.h5" Class="mt-2">Detalle del Curso</MudText>
+
+        @if (!string.IsNullOrEmpty(mensaje))
+        {
+            <MudAlert Severity="Severity.Success" Dense="true" Class="my-2">
+                @mensaje
+            </MudAlert>
+        }
+
+        <MudGrid Class="mt-2">
+            <MudItem xs="12" md="2">
+                <MudCard Class="pa-1">
+
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle2">@curso.Nombre</MudText>
+
+                        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                            <MudText Typo="Typo.subtitle2">Ícono:</MudText>
+                            @if (!string.IsNullOrWhiteSpace(curso.Icono) && curso.Icono.StartsWith("Icons.Material"))
+                            {
+                                <MudIcon Icon="@GetIconFromString(curso.Icono)" Size="Size.Large" />
+                            }
+                            else
+                            {
+                                <span style="font-size:32px;">@curso.Icono</span>
+                            }
+                        </MudStack>
+
+                        <MudText Typo="Typo.caption">Color: @curso.Color</MudText>
+                    </MudStack>
+
+                    <MudButton Color="Color.Primary"
+                               Variant="Variant.Outlined"
+                               OnClick="EditarCurso"
+                               Class="mt-1">
+                        Editar curso
+                    </MudButton>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+
+        <MudGrid Class="mt-4">
+            <MudItem xs="12" md="6">
+                <MudCard Class="pa-3">
+                    <MudText Typo="Typo.h6">Asignaturas</MudText>
+
+                    @if (!asignaturasVinculadas.Any())
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true">
+                            No hay asignaturas vinculadas.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        @foreach (var asignatura in asignaturasVinculadas)
+                        {
+                            <MudPaper Class="p-2 my-1 d-flex align-center justify-space-between flex-wrap">
+                                <div>
+                                    <MudText Typo="Typo.subtitle2">@asignatura.Nombre</MudText>
+                                    <MudText Typo="Typo.caption">@asignatura.Descripcion</MudText>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <MudButton Variant="Variant.Text"
+                                               Size="Size.Small"
+                                               OnClick="@(() => EditarAsignatura(asignatura))">
+                                        Editar
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Text"
+                                               Size="Size.Small"
+                                               OnClick="@(() => DesvincularAsignatura(asignatura.Id))">
+                                        Quitar
+                                    </MudButton>
+                                </div>
+                            </MudPaper>
+                        }
+                    }
+
+                    <MudDivider Class="my-2" />
+
+                    <MudSelect T="string"
+                               Label="Seleccionar asignatura"
+                               @bind-Value="asignaturaSeleccionada">
+                        <MudSelectItem Value="@EmptyOption">-- Elegí una --</MudSelectItem>
+                        @foreach (var a in asignaturasDisponibles)
+                        {
+                            <MudSelectItem Value="@a.Id.ToString()">@a.Nombre</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <MudStack Row="true" Spacing="1" Class="mt-2">
+                        <MudButton Disabled="@EsOpcionVacia(asignaturaSeleccionada)"
+                                   OnClick="VincularAsignatura"
+                                   Color="Color.Primary">
+                            Vincular
+                        </MudButton>
+                        <MudButton Color="Color.Secondary"
+                                   Variant="Variant.Outlined"
+                                   OnClick="NuevaAsignatura">
+                            Nueva asignatura
+                        </MudButton>
+                    </MudStack>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudCard Class="pa-3">
+                    <MudText Typo="Typo.h6">Estudiantes</MudText>
+
+                    @if (!estudiantesVinculados.Any())
+                    {
+                        <MudAlert Severity="Severity.Info" Dense="true">
+                            No hay estudiantes vinculados.
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        @foreach (var estudiante in estudiantesVinculados)
+                        {
+                            <MudPaper Class="p-2 my-1 d-flex align-center justify-space-between flex-wrap">
+                                <div>
+                                    <MudText Typo="Typo.subtitle2">@estudiante.NombreCompleto</MudText>
+                                    <MudText Typo="Typo.caption">Edad: @estudiante.Edad</MudText>
+                                </div>
+                                <div class="d-flex gap-1">
+                                    <MudButton Variant="Variant.Text"
+                                               Size="Size.Small"
+                                               OnClick="@(() => EditarEstudiante(estudiante))">
+                                        Editar
+                                    </MudButton>
+                                    <MudButton Variant="Variant.Text"
+                                               Size="Size.Small"
+                                               OnClick="@(() => DesvincularEstudiante(estudiante.Id))">
+                                        Quitar
+                                    </MudButton>
+                                </div>
+                            </MudPaper>
+                        }
+                    }
+
+                    <MudDivider Class="my-2" />
+
+                    <MudSelect T="string"
+                               Label="Seleccionar estudiante"
+                               @bind-Value="estudianteSeleccionado">
+                        <MudSelectItem Value="@EmptyOption">-- Elegí uno --</MudSelectItem>
+                        @foreach (var e in estudiantesDisponibles)
+                        {
+                            <MudSelectItem Value="@e.Id.ToString()">@e.NombreCompleto</MudSelectItem>
+                        }
+                    </MudSelect>
+
+                    <MudStack Row="true" Spacing="1" Class="mt-2">
+                        <MudButton Disabled="@EsOpcionVacia(estudianteSeleccionado)"
+                                   OnClick="VincularEstudiante"
+                                   Color="Color.Primary">
+                            Vincular
+                        </MudButton>
+                        <MudButton Color="Color.Secondary"
+                                   Variant="Variant.Outlined"
+                                   OnClick="NuevoEstudiante">
+                            Nuevo estudiante
+                        </MudButton>
+                    </MudStack>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public Guid CursoId { get; set; }
+
+    private Curso? curso;
+    private List<Asignatura> asignaturas = new();
+    private List<Estudiante> estudiantes = new();
+    private bool cargando = true;
+    private const string EmptyOption = "00000000-0000-0000-0000-000000000000";
+    private string asignaturaSeleccionada = EmptyOption;
+    private string estudianteSeleccionado = EmptyOption;
+    private string error = "";
+    private string mensaje = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        cargando = true;
+        error = "";
+        mensaje = "";
+
+        try
+        {
+            curso = await CursosService.GetAsync(CursoId);
+            asignaturas = await AsignaturasService.GetAllAsync() ?? new List<Asignatura>();
+            estudiantes = await EstudiantesService.GetAllAsync() ?? new List<Estudiante>();
+
+            if (curso == null)
+                error = "No encontré el curso.";
+        }
+        catch
+        {
+            error = "Algo falló cargando los datos.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+    private async Task EditarCurso()
+    {
+        if (curso == null) return;
+
+        var parameters = new DialogParameters { ["Model"] = curso };
+        var dialog = await Dialogs.ShowAsync<CursosCrud>("Editar Curso", parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            mensaje = "Datos guardados.";
+            await Load();
+        }
+    }
+
+    private IEnumerable<Asignatura> asignaturasVinculadas =>
+        curso == null
+            ? Enumerable.Empty<Asignatura>()
+            : asignaturas.Where(a => curso.Asignaturas.Contains(a.Id)).OrderBy(a => a.Nombre);
+
+    private IEnumerable<Asignatura> asignaturasDisponibles =>
+        curso == null
+            ? Enumerable.Empty<Asignatura>()
+            : asignaturas.Where(a => !curso.Asignaturas.Contains(a.Id)).OrderBy(a => a.Nombre);
+
+    private IEnumerable<Estudiante> estudiantesVinculados =>
+        curso == null
+            ? Enumerable.Empty<Estudiante>()
+            : estudiantes.Where(e => curso.Estudiantes.Contains(e.Id)).OrderBy(e => e.NombreCompleto);
+
+    private IEnumerable<Estudiante> estudiantesDisponibles =>
+        curso == null
+            ? Enumerable.Empty<Estudiante>()
+            : estudiantes.Where(e => !curso.Estudiantes.Contains(e.Id)).OrderBy(e => e.NombreCompleto);
+
+    private async Task VincularAsignatura()
+    {
+        if (curso == null || EsOpcionVacia(asignaturaSeleccionada))
+            return;
+
+        var id = Guid.Parse(asignaturaSeleccionada);
+        var ok = await CursosService.AddAsignatura(curso.Id, id);
+        if (!ok)
+        {
+            await Dialogs.ShowMessageBox("Error", "No pude vincular la asignatura.");
+            return;
+        }
+
+        asignaturaSeleccionada = EmptyOption;
+        await Load();
+    }
+
+    private async Task DesvincularAsignatura(Guid id)
+    {
+        if (curso == null) return;
+
+        bool confirmar = await Dialogs.ShowMessageBox("Confirmar", "¿Quitar la asignatura del curso?", yesText: "Sí", cancelText: "Cancelar") ?? false;
+        if (!confirmar) return;
+
+        var ok = await CursosService.RemoveAsignatura(curso.Id, id);
+        if (!ok)
+        {
+            await Dialogs.ShowMessageBox("Ups", "No se pudo quitar.");
+            return;
+        }
+
+        await Load();
+    }
+
+    private async Task VincularEstudiante()
+    {
+        if (curso == null || EsOpcionVacia(estudianteSeleccionado))
+            return;
+
+        var id = Guid.Parse(estudianteSeleccionado);
+        var ok = await CursosService.AddEstudiante(curso.Id, id);
+        if (!ok)
+        {
+            await Dialogs.ShowMessageBox("Error", "No pude vincular el estudiante.");
+            return;
+        }
+
+        estudianteSeleccionado = EmptyOption;
+        await Load();
+    }
+
+    private async Task DesvincularEstudiante(Guid id)
+    {
+        if (curso == null) return;
+
+        bool confirmar = await Dialogs.ShowMessageBox("Confirmar", "¿Quitar el estudiante del curso?", yesText: "Sí", cancelText: "Cancelar") ?? false;
+        if (!confirmar) return;
+
+        var ok = await CursosService.RemoveEstudiante(curso.Id, id);
+        if (!ok)
+        {
+            await Dialogs.ShowMessageBox("Error", "No se pudo quitar.");
+            return;
+        }
+
+        await Load();
+    }
+
+    private async Task NuevaAsignatura()
+    {
+        var dialog = await Dialogs.ShowAsync<AsignaturasCrud>("Nueva Asignatura");
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+            await Load();
+    }
+
+    private async Task EditarAsignatura(Asignatura modelo)
+    {
+        var parameters = new DialogParameters { ["Model"] = modelo };
+        var dialog = await Dialogs.ShowAsync<AsignaturasCrud>("Editar Asignatura", parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+            await Load();
+    }
+
+    private async Task NuevoEstudiante()
+    {
+        var dialog = await Dialogs.ShowAsync<EstudiantesCrud>("Nuevo Estudiante");
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+            await Load();
+    }
+
+    private async Task EditarEstudiante(Estudiante modelo)
+    {
+        var parameters = new DialogParameters { ["Model"] = modelo };
+        var dialog = await Dialogs.ShowAsync<EstudiantesCrud>("Editar Estudiante", parameters);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+            await Load();
+    }
+
+    private bool EsOpcionVacia(string value) => string.IsNullOrWhiteSpace(value) || value == EmptyOption;
+
+    private string GetIconFromString(string? iconString)
+    {
+        return iconString switch
+        {
+            "Icons.Material.Filled.School" => Icons.Material.Filled.School,
+            "Icons.Material.Filled.Book" => Icons.Material.Filled.Book,
+            "Icons.Material.Filled.MenuBook" => Icons.Material.Filled.MenuBook,
+            "Icons.Material.Filled.LibraryBooks" => Icons.Material.Filled.LibraryBooks,
+            "Icons.Material.Filled.Class" => Icons.Material.Filled.Class,
+            "Icons.Material.Filled.People" => Icons.Material.Filled.People,
+            "Icons.Material.Filled.Groups" => Icons.Material.Filled.Groups,
+            "Icons.Material.Filled.Person" => Icons.Material.Filled.Person,
+            "Icons.Material.Filled.EmojiEvents" => Icons.Material.Filled.EmojiEvents,
+            "Icons.Material.Filled.Star" => Icons.Material.Filled.Star,
+            _ => Icons.Material.Filled.School
+        };
+    }
+
+    private void Volver() => Nav.NavigateTo("/cursos");
+}
+

@@ -1,6 +1,8 @@
 ﻿@page "/estudiantes"
 @inject IDialogService DialogService
 @inject EstudiantesService Service
+@inject ISnackbar Snackbar
+
 @using Escuela_Front.Models
 @using Escuela_Front.Services 
 @using Microsoft.AspNetCore.Components.Web
@@ -98,8 +100,15 @@
 
         if (ok)
         {
-            await Service.DeleteAsync(id);
-            await Load();
+            try
+            {
+                await Service.DeleteAsync(id);
+                await Load();
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add(ex.Message, Severity.Error);
+            }
         }
     }
 }

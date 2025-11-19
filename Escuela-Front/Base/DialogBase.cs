@@ -22,7 +22,6 @@ namespace Escuela_Front.Base
             }
             catch (Exception ex)
             {
-                // Dialog already closed or disposed, ignore
                 System.Diagnostics.Debug.WriteLine($"Error closing dialog: {ex.Message}");
             }
         }
