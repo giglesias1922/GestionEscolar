@@ -1,0 +1,17 @@
+[
+  {
+    "Id": "a466800b-d70f-4194-8ca0-df30a830a8e9",
+    "Nombre": "Matem\u00E1ticas",
+    "Descripcion": "Matematicas"
+  },
+  {
+    "Id": "2d0f6baa-ca49-46cd-aed9-c02a5be5816e",
+    "Nombre": "Ciencias Naturales",
+    "Descripcion": "Ciencias"
+  },
+  {
+    "Id": "616d8070-e023-46fb-a658-517c3569104b",
+    "Nombre": "Geograf\u00EDa",
+    "Descripcion": "Contenido general"
+  }
+]

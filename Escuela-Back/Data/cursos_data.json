@@ -1,0 +1,57 @@
+[
+  {
+    "Id": "6c421ee6-8b2f-4aae-b18e-4ad90f9aafff",
+    "Nombre": "Primario 1",
+    "Color": "#0004ff",
+    "Icono": "Icons.Material.Filled.People",
+    "Asignaturas": [
+      "a466800b-d70f-4194-8ca0-df30a830a8e9",
+      "616d8070-e023-46fb-a658-517c3569104b",
+      "2d0f6baa-ca49-46cd-aed9-c02a5be5816e"
+    ],
+    "Estudiantes": [
+      "f882e840-258e-4e45-9044-ce4d660fa455",
+      "4907f290-3a04-4483-a3f6-5ac389ba52ad"
+    ]
+  },
+  {
+    "Id": "a47357b4-8485-4dc0-a4a5-0add7dce18d9",
+    "Nombre": "Primario 2",
+    "Color": "#ffea00",
+    "Icono": "Icons.Material.Filled.Class",
+    "Asignaturas": [
+      "a466800b-d70f-4194-8ca0-df30a830a8e9",
+      "616d8070-e023-46fb-a658-517c3569104b"
+    ],
+    "Estudiantes": [
+      "a7795a61-d07f-4e77-b7c4-42a134485732",
+      "a894fc30-fa48-49a4-80c9-b9c2533f4282"
+    ]
+  },
+  {
+    "Id": "a5fd3633-bc1b-4744-bccc-6f088a5a1b37",
+    "Nombre": "Primaria 3",
+    "Color": "#FF0000",
+    "Icono": "Icons.Material.Filled.Star",
+    "Asignaturas": [
+      "a466800b-d70f-4194-8ca0-df30a830a8e9"
+    ],
+    "Estudiantes": [
+      "a7795a61-d07f-4e77-b7c4-42a134485732"
+    ]
+  },
+  {
+    "Id": "06e396cc-cf01-4e63-ae16-169734834ac8",
+    "Nombre": "Primaria 4",
+    "Color": "#00e5ff",
+    "Icono": "Icons.Material.Filled.School",
+    "Asignaturas": [
+      "a466800b-d70f-4194-8ca0-df30a830a8e9",
+      "2d0f6baa-ca49-46cd-aed9-c02a5be5816e"
+    ],
+    "Estudiantes": [
+      "70c07bbf-8d13-4eb5-a853-203946a2f21a",
+      "a894fc30-fa48-49a4-80c9-b9c2533f4282"
+    ]
+  }
+]

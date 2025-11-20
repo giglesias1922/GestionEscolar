@@ -1,0 +1,37 @@
+[
+  {
+    "Id": "43a692bb-ecb4-4873-b6f3-9c62e435975e",
+    "NombreCompleto": "Mar\u00EDa P\u00E9rez",
+    "Edad": 10
+  },
+  {
+    "Id": "a7795a61-d07f-4e77-b7c4-42a134485732",
+    "NombreCompleto": "Juan L\u00F3pez",
+    "Edad": 12
+  },
+  {
+    "Id": "f882e840-258e-4e45-9044-ce4d660fa455",
+    "NombreCompleto": "Ana Garc\u00EDa",
+    "Edad": 9
+  },
+  {
+    "Id": "4907f290-3a04-4483-a3f6-5ac389ba52ad",
+    "NombreCompleto": "Gustavo Iglesias",
+    "Edad": 17
+  },
+  {
+    "Id": "a894fc30-fa48-49a4-80c9-b9c2533f4282",
+    "NombreCompleto": "Jose Cueva",
+    "Edad": 10
+  },
+  {
+    "Id": "6358a9b9-b81c-47a6-93af-ca926f283cae",
+    "NombreCompleto": "Pedro Alvarez",
+    "Edad": 11
+  },
+  {
+    "Id": "70c07bbf-8d13-4eb5-a853-203946a2f21a",
+    "NombreCompleto": "Jorge Bisca",
+    "Edad": 11
+  }
+]
